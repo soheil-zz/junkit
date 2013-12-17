@@ -1,6 +1,6 @@
 # Junkit
 
-Junkit is a Jenkin command line build tool. Designed for Jenkins, works out of the box with Rails with Git, but can be extended to support other configurations.
+Junkit is a Jenkins command line build tool. Designed for Jenkins, works out of the box with Rails with Git, but can be extended to support other configurations.
 
 
 
