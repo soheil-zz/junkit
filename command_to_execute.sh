@@ -1,6 +1,8 @@
 export RAILS_ENV=test
 export GEM_PATH=./vendor/bundle
 export GEMS_TAR_FILE=/tmp/JOB_NAME_gems.tar.gz
+export GEMFILE_SHA_FILE=/tmp/JOB_NAME_gemfile.sha
+export GEMS_SHA_FILE=/tmp/JOB_NAME_gems.sha
 
 git clone --depth 1 GIT_REMOTE_ORIGIN .
 git checkout GIT_BRANCH
@@ -8,10 +10,10 @@ git checkout GIT_BRANCH
 find config -name '*.yml.example' | sed "p;s/.example//" | xargs -n2 cp
 
 export GEMS_SHA_CALCULATED="$(shasum $GEMS_TAR_FILE)"
-export GEMS_SHA="$(cat bin/gems.sha)"
+export GEMS_SHA="$(cat $GEMS_SHA_FILE)"
 export GEMFILE_SHA_CALCULATED="$(shasum Gemfile)"
-export GEMFILE_SHA="$(cat bin/gemfile.sha)"
-export GEM_FILES_EXIST=$([ -f "$GEMS_TAR_FILE" ] && [ -f "bin/gems.sha" ] && [ -f "bin/gemfile.sha" ] && [ -f "/tmp/JOB_NAME_gems.tar.gz" ] && echo 1)
+export GEMFILE_SHA="$(cat $GEMFILE_SHA_FILE)"
+export GEM_FILES_EXIST=$([ -f "$GEMS_TAR_FILE" ] && [ -f "$GEMS_SHA_FILE" ] && [ -f "$GEMFILE_SHA_FILE" ] && [ -f "/tmp/JOB_NAME_gems.tar.gz" ] && echo 1)
 export HAS_GEMS_TARBALL=$([ -n "$GEM_FILES_EXIST" ] && [ "$GEMS_SHA_CALCULATED" = "$GEMS_SHA" ] && [ "$GEMFILE_SHA_CALCULATED" = "$GEMFILE_SHA" ] && echo 1)
 
 if [ -n "$HAS_GEMS_TARBALL" ]
@@ -26,11 +28,8 @@ else bundle --deployment
   cd "$GEM_PATH"
   tar -zcvf $GEMS_TAR_FILE .
   cd -
-  shasum $GEMS_TAR_FILE > bin/gems.sha
-  shasum Gemfile > bin/gemfile.sha
-  git add bin
-  git commit -am 'JENKINS: update gems (this will not affect anything but Jenkins)'
-  git push origin GIT_BRANCH
+  shasum $GEMS_TAR_FILE > $GEMS_SHA_FILE
+  shasum Gemfile > $GEMFILE_SHA_FILE
   echo 'gems updated'
 fi
 
