@@ -99,6 +99,9 @@ while [[ ! "$out" =~ "Finished: " ]]; do
       echo ""
       printedNewLineOnce=1
     fi
+    if [ -n "$out" ]; then
+      echo "$out"
+    fi
   fi
   sleep .2
 done
