@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# --------------------- CONFIG SECTION ---------------------
+# this can be hardcoded
+GIT_REMOTE_ORIGIN=$(git config --get remote.origin.url)
+#CI_SERVER=https://ci.example.com:8080
+# --------------------- CONFIG SECTION [END]----------------
+
+
+
+
+
+
+# ANSI color codes
+RS="\033[0m"    # reset
+HC="\033[1m"    # hicolor
+UL="\033[4m"    # underline
+INV="\033[7m"   # inverse background and foreground
+FBLK="\033[30m" # foreground black
+FRED="\033[31m" # foreground red
+FGRN="\033[32m" # foreground green
+FYEL="\033[33m" # foreground yellow
+FBLE="\033[34m" # foreground blue
+FMAG="\033[35m" # foreground magenta
+FCYN="\033[36m" # foreground cyan
+FWHT="\033[37m" # foreground white
+BBLK="\033[40m" # background black
+BRED="\033[41m" # background red
+BGRN="\033[42m" # background green
+BYEL="\033[43m" # background yellow
+BBLE="\033[44m" # background blue
+BMAG="\033[45m" # background magenta
+BCYN="\033[46m" # background cyan
+BWHT="\033[47m" # background white
+
+read -r -d '' splash <<EOF
+${FMAG}♥${RS}
+
+
+
+             _            ${FGRN} _${RS}    _ _   
+            (_)_   _ _ __ ${FGRN}| | _${RS}(_) |_ 
+            | | | | | '_ \\\\${FGRN}| |/ /${RS} | __|
+            | | |_| | | | ${FGRN}|   <${RS}| | |_ 
+           _/ |\__,_|_| |_${FGRN}|_|\_\\\\${RS}_|\__|
+          |__/
+
+                        for support: ysoheil@gmail.com
+                        -v for verbose mode
+
+
+EOF
+echo -e "$splash"
+echo "Starting up..."
+JOB_NAME=`whoami`_job
+curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME/doDelete"
+echo "Creating Job for current branch..."
+
+GIT_BRANCH=$(git branch|grep \*|sed -e "s/\* //")
+
+# replace \n with ;\n (this is the "tr") - escape string (this is the "sed")
+COMMAND_TO_EXECUTE=$(tr '\n' ';' < $(dirname "$0")/command_to_execute.sh | sed -e 's/[\/&]/\\&/g' | sed -e 's/;;/;/g')
+GIT_REMOTE_ORIGIN=$(echo "$GIT_REMOTE_ORIGIN" | sed -e 's/[\/&]/\\&/g')
+cat $(dirname "$0")/config.xml | sed -e "s/COMMAND_TO_EXECUTE/$COMMAND_TO_EXECUTE/" | sed -e "s/GIT_BRANCH/$GIT_BRANCH/g" | sed -e "s/JOB_NAME/$JOB_NAME/g" | sed -e "s/GIT_REMOTE_ORIGIN/$GIT_REMOTE_ORIGIN/g" > /tmp/config-tmp.xml
+
+curl -X POST -d @/tmp/config-tmp.xml -H "Content-Type:text/xml" "$CI_SERVER/createItem?name=$JOB_NAME"
+echo "Starting a build..."
+curl -X POST "$CI_SERVER/job/$JOB_NAME/build"
+echo -e "${FGRN}Scheduled build:\n\n\n\t\t\t ${FCYN}$CI_SERVER/job/$JOB_NAME/1/console${RS}\n\n\n"
+
+if [[ "$1" == "-v" ]]; then
+  printf "Fetching logs"
+else
+  echo "Waiting for build to finish... (or CTRL+C to exit and leave the build running)"
+fi
+
+printedNewLineOnce=0
+printedRunningSpecsOnce=0
+while [[ ! "$out" =~ "Finished: " ]]; do
+  if [ ! -n "$start" ]; then
+    start=0
+  fi
+  out=$(curl -D /tmp/header.file -s "$CI_SERVER/job/$JOB_NAME/1/logText/progressiveHtml?start=$start")
+  start=$(cat /tmp/header.file|grep "X-Text-Size"|cut -f2 -d:|sed 's/ //')
+
+  if [[ $printedRunningSpecsOnce == 0 && "$out" =~ "Execute spec" ]]; then
+    echo "Running specs..."
+    printedRunningSpecsOnce=1
+  fi
+
+  # verbose only after this point
+  if [[ "$1" != "-v" ]]; then
+    continue
+  fi
+  if [[ "$out" =~ "Status Code: 404" ]]; then
+    printf "."
+  else
+    if [[ $printedNewLineOnce == 0 ]]; then
+      echo ""
+      printedNewLineOnce=1
+    fi
+  fi
+  sleep .2
+done
+
+if [[ "$out" =~ "FAILURE" ]]; then
+  echo -e "\n\n-------------------------------------------------------"
+  echo -e " FAILURE LOG"
+  echo -e "-------------------------------------------------------\n\n"
+  echo -e "$out"
+  echo -e "${FRED}\n\nFailed!${RS}\n\n"
+fi
+
+if [[ "$out" =~ "SUCCESS" ]]; then
+  # build time
+  echo "$out" | grep "Finished in"
+
+  # success failure count
+  echo "$out" | grep " failures,"
+  echo -e "${FGRN}\n\Succeeded!${RS}\n\n"
+fi
