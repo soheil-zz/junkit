@@ -104,13 +104,22 @@ while [[ ! "$out" =~ "Finished: " ]]; do
       echo "$out"
     fi
   fi
-  sleep .2
+  sleep .3
 done
 
 if [[ "$out" =~ "FAILURE" ]]; then
   echo -e "\n\n-------------------------------------------------------"
   echo -e " FAILURE LOG"
   echo -e "-------------------------------------------------------\n\n"
+
+  # get top half
+  lineNumber=$(echo "$out"|grep -n "Failed examples:"|cut -f1 -d:)
+  out=$(echo "$out"|head -n$(($lineNumber - 2)))
+
+  # get bottom half
+  lineNumber=$(($(echo "$out"|wc -l|sed 's/ //g') - $(echo "$out"|grep -n "Failures:"|cut -f1 -d:)))
+  out=$(echo "$out"|tail -n$(($lineNumber)))
+
   echo -e "$out"
   echo -e "${FRED}\n\nFailed!${RS}\n\n"
 fi
