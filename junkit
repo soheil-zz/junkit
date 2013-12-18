@@ -77,12 +77,14 @@ fi
 
 printedNewLineOnce=0
 printedRunningSpecsOnce=0
+allOut=""
 while [[ ! "$out" =~ "Finished: " ]]; do
   if [ ! -n "$start" ]; then
     start=0
   fi
   out=$(curl -D /tmp/header.file -s "$CI_SERVER/job/$JOB_NAME/1/logText/progressiveHtml?start=$start")
   start=$(cat /tmp/header.file|grep "X-Text-Size"|cut -f2 -d:|sed 's/ //')
+  allOut="$allOut\n$out"
 
   if [[ $printedRunningSpecsOnce == 0 && "$out" =~ "Execute spec" ]]; then
     echo "Running specs..."
@@ -104,7 +106,7 @@ while [[ ! "$out" =~ "Finished: " ]]; do
       echo "$out"
     fi
   fi
-  sleep .3
+  sleep .2
 done
 
 if [[ "$out" =~ "FAILURE" ]]; then
@@ -113,14 +115,14 @@ if [[ "$out" =~ "FAILURE" ]]; then
   echo -e "-------------------------------------------------------\n\n"
 
   # get top half
-  lineNumber=$(echo "$out"|grep -n "Failed examples:"|cut -f1 -d:)
-  out=$(echo "$out"|head -n$(($lineNumber - 2)))
+  lineNumber=$(echo "$allOut"|grep -n "Failed examples:"|cut -f1 -d:)
+  allOut=$(echo "$allOut"|head -n$(($lineNumber - 2)))
 
   # get bottom half
-  lineNumber=$(($(echo "$out"|wc -l|sed 's/ //g') - $(echo "$out"|grep -n "Failures:"|cut -f1 -d:)))
-  out=$(echo "$out"|tail -n$(($lineNumber)))
+  lineNumber=$(($(echo "$allOut"|wc -l|sed 's/ //g') - $(echo "$allOut"|grep -n "Failures:"|cut -f1 -d:)))
+  allOut=$(echo "$allOut"|tail -n$(($lineNumber)))
 
-  echo -e "$out"
+  echo -e "$allOut"
   echo -e "${FRED}\n\nFailed!${RS}\n\n"
 fi
 
@@ -128,7 +130,7 @@ if [[ "$out" =~ "SUCCESS" ]]; then
   # build time
   echo "$out" | grep "Finished in"
 
-  # success failure count
+  # success, failure count
   echo "$out" | grep " failures,"
   echo -e "${FGRN}\n\Succeeded!${RS}\n\n"
 fi
