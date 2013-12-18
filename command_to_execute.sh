@@ -9,6 +9,12 @@ git checkout GIT_BRANCH
 
 find config -name '*.yml.example' | sed "p;s/.example//" | xargs -n2 cp
 
+cat config/database.yml | sed 's/\(database: *\)\(.*\)/\1JOB_NAME_\2/g' > /tmp/database.yml
+mv /tmp/database.yml config/database.yml
+
+cat config/tire.yml | sed 's/test_/JOB_NAME_test_/g' > /tmp/tire.yml
+mv /tmp/tire.yml config/tire.yml
+
 export GEMS_SHA_CALCULATED="$(shasum $GEMS_TAR_FILE)"
 export GEMS_SHA="$(cat $GEMS_SHA_FILE)"
 export GEMFILE_SHA_CALCULATED="$(shasum Gemfile)"

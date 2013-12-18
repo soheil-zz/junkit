@@ -68,6 +68,7 @@ echo "Starting a build..."
 curl -X POST "$CI_SERVER/job/$JOB_NAME/build"
 echo -e "${FGRN}Scheduled build:\n\n\n\t\t\t ${FCYN}$CI_SERVER/job/$JOB_NAME/1/console${RS}\n\n\n"
 
+echo "Started at: $(date)"
 if [[ "$1" == "-v" ]]; then
   printf "Fetching logs"
 else
