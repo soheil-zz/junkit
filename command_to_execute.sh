@@ -1,10 +1,10 @@
+git clone --depth 1 GIT_REMOTE_ORIGIN .
+git checkout GIT_BRANCH
+
 export RAILS_ENV=test
 export GEM_PATH=./vendor/bundle
 export GEMFILE_SHA_CALCULATED="$(shasum Gemfile | cut -f1 -d' ')"
 export GEMS_TAR_FILE=/tmp/"$GEMFILE_SHA_CALCULATED"_gems.tar.gz
-
-git clone --depth 1 GIT_REMOTE_ORIGIN .
-git checkout GIT_BRANCH
 
 find config -name '*.yml.example' | sed "p;s/.example//" | xargs -n2 cp
 
@@ -29,7 +29,7 @@ else bundle --deployment
   echo 'gems updated'
   cd /tmp
   tarballCount=$(ls -lt | grep _gems.tar.gz | wc -l | sed 's/ //g')
-  [[ $tarballCount > 5 ]] && ls -t | grep _gems.tar.gz | tail -n$(($tarballCount - 5)) | xargs rm
+  test $tarballCount -gt 5 && ls -t | grep _gems.tar.gz | tail -n$(($tarballCount - 5)) | xargs rm
   cd -
 fi
 
