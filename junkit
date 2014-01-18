@@ -52,7 +52,7 @@ ${FMAG}♥${RS}
 EOF
 echo -e "$splash"
 echo "Starting up..."
-JOB_NAME=`whoami`_job
+JOB_NAME=$(echo "`whoami`_job" | awk '{print tolower($0)}')
 curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME/doDelete"
 echo "Creating Job for current branch..."
 
