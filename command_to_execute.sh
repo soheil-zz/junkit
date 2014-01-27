@@ -17,7 +17,7 @@ mv /tmp/tire.yml config/tire.yml
 if [ -f "$GEMS_TAR_FILE" ]
 then mkdir "$GEM_PATH"
   cd "$GEM_PATH"
-  tar -zxvf $GEMS_TAR_FILE
+  tar -zxvf $GEMS_TAR_FILE > /dev/null
   cd -
   bundle --deployment
 else bundle --deployment
