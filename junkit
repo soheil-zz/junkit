@@ -46,6 +46,8 @@ ${FMAG}♥${RS}
           |__/
 
                         for support: ysoheil@gmail.com
+                        
+                        bin/junkit [JOB_NAME] [BRANCH_NAME]
                         -v for verbose mode
 
 
