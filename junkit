@@ -52,7 +52,12 @@ ${FMAG}♥${RS}
 EOF
 echo -e "$splash"
 echo "Starting up..."
-JOB_NAME=$(echo "`whoami`_job" | awk '{print tolower($0)}')
+if [[ "$1" != "" && "$1" != "-v" ]]; then
+  whoami="$1"
+else
+  whoami=`whoami`
+fi
+JOB_NAME=$(echo "$whoami"_job | awk '{print tolower($0)}')
 curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME/doDelete"
 echo "Creating Job for current branch..."
 
@@ -124,6 +129,7 @@ if [[ "$out" =~ "FAILURE" ]]; then
 
   echo -e "$allOut"
   echo -e "${FRED}\n\nFailed!${RS}\n\n"
+  exit 1
 fi
 
 if [[ "$out" =~ "SUCCESS" ]]; then
@@ -132,5 +138,6 @@ if [[ "$out" =~ "SUCCESS" ]]; then
 
   # success, failure count
   echo "$out" | grep " failures,"
-  echo -e "${FGRN}\n\Succeeded!${RS}\n\n"
+  echo -e "${FGRN}\nSucceeded!${RS}\n\n"
+  exit 0
 fi
