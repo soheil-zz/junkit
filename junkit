@@ -53,15 +53,19 @@ EOF
 echo -e "$splash"
 echo "Starting up..."
 if [[ "$1" != "" && "$1" != "-v" ]]; then
-  whoami="$1"
+  WHOAMI="$1"
 else
-  whoami=`whoami`
+  WHOAMI=`whoami`
 fi
-JOB_NAME=$(echo "$whoami"_job | awk '{print tolower($0)}')
+JOB_NAME=$(echo "$WHOAMI"_job | awk '{print tolower($0)}')
 curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME/doDelete"
 echo "Creating Job for current branch..."
 
-GIT_BRANCH=$(git branch|grep \*|sed -e "s/\* //")
+if [[ "$2" != "" ]]; then
+  GIT_BRANCH="$2"
+else
+  GIT_BRANCH=$(git branch|grep \*|sed -e "s/\* //")
+fi
 
 # replace \n with ;\n (this is the "tr") - escape string (this is the "sed")
 COMMAND_TO_EXECUTE=$(tr '\n' ';' < $(dirname "$0")/command_to_execute.sh | sed -e 's/[\/&]/\\&/g' | sed -e 's/;;/;/g')
