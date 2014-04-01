@@ -6,7 +6,11 @@ export GEM_PATH=./vendor/bundle
 export GEMFILE_SHA_CALCULATED="$(shasum Gemfile | cut -f1 -d' ')"
 export GEMS_TAR_FILE=/tmp/"$GEMFILE_SHA_CALCULATED"_gems.tar.gz
 
+rm -rf /tmp/junkit
+mkdir -p /tmp/junkit
+cp config/*.yml /tmp/junkit
 find config -name '*.yml.example' | sed "p;s/.example//" | xargs -n2 cp
+cp /tmp/junkit/* config/
 
 cat config/database.yml | sed 's/\(database: *\)\(.*\)/\1JOB_NAME_\2/g' > /tmp/database.yml
 mv /tmp/database.yml config/database.yml
