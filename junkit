@@ -135,6 +135,7 @@ if [[ "$out" =~ "FAILURE" ]]; then
 
   echo -e "$allOut"
   echo -e "${FRED}\n\nFailed!${RS}\n\n"
+  osascript -e 'display notification "Build Failed! Sorry:(" with title "Build Status"'
   exit 1
 fi
 
@@ -145,5 +146,6 @@ if [[ "$out" =~ "SUCCESS" ]]; then
   # success, failure count
   echo "$out" | grep " failures,"
   echo -e "${FGRN}\nSucceeded!${RS}\n\n"
+  osascript -e 'display notification "Build Succeeded! Yay!!" with title "Build Status"'
   exit 0
 fi
