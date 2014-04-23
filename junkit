@@ -59,12 +59,13 @@ if [[ "$1" != "" && "$1" != "-v" ]]; then
 else
   WHOAMI=`whoami`
 fi
+
+SAFE_CI_SERVER="http://$CI_SERVER"
+CI_SERVER="http://$LOGIN@$CI_SERVER"
+
 JOB_NAME=$(echo "$WHOAMI"_job | awk '{print tolower($0)}')
 curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME/doDelete"
 echo "Creating Job for current branch..."
-
-SAFE_CI_SERVER="$CI_SERVER"
-CI_SERVER="$LOGIN@$CI_SERVER"
 
 if [[ "$2" != "" ]]; then
   GIT_BRANCH="$2"
