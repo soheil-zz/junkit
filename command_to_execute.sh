@@ -12,7 +12,7 @@ cp config/*.yml /tmp/junkit
 find config -name '*.yml.example' | sed "p;s/.example//" | xargs -n2 cp
 cp /tmp/junkit/* config/
 
-cat config/database.yml | sed 's/\(database: *\)\(.*\)/\1JOB_NAME_\2/g' > /tmp/database.yml
+cat config/database.yml | sed 's/\(database: *\)\(.*\)/\1 JOB_NAME_\2/g' > /tmp/database.yml
 mv /tmp/database.yml config/database.yml
 
 cat config/tire.yml | sed 's/test_/JOB_NAME_test_/g' > /tmp/tire.yml
