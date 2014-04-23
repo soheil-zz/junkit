@@ -63,6 +63,9 @@ JOB_NAME=$(echo "$WHOAMI"_job | awk '{print tolower($0)}')
 curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME/doDelete"
 echo "Creating Job for current branch..."
 
+SAFE_CI_SERVER="$CI_SERVER"
+CI_SERVER="$LOGIN@$CI_SERVER"
+
 if [[ "$2" != "" ]]; then
   GIT_BRANCH="$2"
 else
@@ -77,7 +80,7 @@ cat $(dirname "$0")/config.xml | sed -e "s/COMMAND_TO_EXECUTE/$COMMAND_TO_EXECUT
 curl -X POST -d @/tmp/config-tmp.xml -H "Content-Type:text/xml" "$CI_SERVER/createItem?name=$JOB_NAME"
 echo "Starting a build..."
 curl -X POST "$CI_SERVER/job/$JOB_NAME/build"
-echo -e "${FGRN}Scheduled build:\n\n\n\t\t\t ${FCYN}$CI_SERVER/job/$JOB_NAME/1/console${RS}\n\n\n"
+echo -e "${FGRN}Scheduled build:\n\n\n\t\t\t ${FCYN}$SAFE_CI_SERVER/job/$JOB_NAME/1/console${RS}\n\n\n"
 
 echo "Started at: $(date)"
 if [[ "$1" == "-v" ]]; then
