@@ -1,5 +1,4 @@
-git clone --depth 1 GIT_REMOTE_ORIGIN .
-git checkout GIT_BRANCH
+git clone -b GIT_BRANCH GIT_REMOTE_ORIGIN .
 
 export RAILS_ENV=test
 export GEM_PATH=./vendor/bundle

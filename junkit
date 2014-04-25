@@ -130,14 +130,17 @@ if [[ "$out" =~ "FAILURE" ]]; then
   echo -e "-------------------------------------------------------\n\n"
 
   # get top half
-  lineNumber=$(echo "$allOut"|grep -n "Failed examples:"|cut -f1 -d:)
-  allOut=$(echo "$allOut"|head -n$(($lineNumber - 2)))
+  if [[ "$allOut" =~ ".spec" ]]; then
+    lineNumber=$(echo "$allOut"|grep -n "Failed examples:"|cut -f1 -d:)
+    allOut=$(echo "$allOut"|head -n$(($lineNumber - 2)))
 
-  # get bottom half
-  lineNumber=$(($(echo "$allOut"|wc -l|sed 's/ //g') - $(echo "$allOut"|grep -n "Failures:"|cut -f1 -d:)))
-  allOut=$(echo "$allOut"|tail -n$(($lineNumber)))
+    # get bottom half
+    lineNumber=$(($(echo "$allOut"|wc -l|sed 's/ //g') - $(echo "$allOut"|grep -n "Failures:"|cut -f1 -d:)))
+    allOut=$(echo "$allOut"|tail -n$(($lineNumber)))
 
-  echo -e "$allOut"
+    echo -e "$allOut"
+  fi
+
   echo -e "${FRED}\n\nFailed!${RS}\n\n"
   osascript -e 'display notification "Build Failed! Sorry:(" with title "Build Status"'
   exit 1
