@@ -130,7 +130,7 @@ if [[ "$out" =~ "FAILURE" ]]; then
   echo -e "-------------------------------------------------------\n\n"
 
   # get top half
-  if [[ "$allOut" =~ ".spec" ]]; then
+  if [[ "$allOut" =~ "failures," ]]; then
     lineNumber=$(echo "$allOut"|grep -n "Failed examples:"|cut -f1 -d:)
     allOut=$(echo "$allOut"|head -n$(($lineNumber - 2)))
 
@@ -139,6 +139,8 @@ if [[ "$out" =~ "FAILURE" ]]; then
     allOut=$(echo "$allOut"|tail -n$(($lineNumber)))
 
     echo -e "$allOut"
+  else
+    echo "No tests to report"
   fi
 
   echo -e "${FRED}\n\nFailed!${RS}\n\n"
