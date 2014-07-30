@@ -39,6 +39,7 @@ fi
 [ -d "coverage" ] && rm -rf coverage
 mkdir coverage
 
+bundle exec rake db:migrate --trace
 bundle exec rake db:create --trace
 bundle exec rake db:schema:load --trace
 bundle exec rake spec:run_once --trace
