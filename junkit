@@ -81,7 +81,7 @@ cat $(dirname "$0")/config.xml | sed -e "s/COMMAND_TO_EXECUTE/$COMMAND_TO_EXECUT
 curl -X POST -d @/tmp/config-tmp.xml -H "Content-Type:text/xml" "$CI_SERVER/createItem?name=$JOB_NAME"
 echo "Starting a build..."
 curl -X POST "$CI_SERVER/job/$JOB_NAME/build"
-echo -e "${FGRN}Scheduled build:\n\n\n\t\t\t ${FCYN}$SAFE_CI_SERVER/job/$JOB_NAME/1/console${RS}\n\n\n"
+echo -e "${FGRN}Scheduled build:\n\n\n\t\t\t ${FCYN}$SAFE_CI_SERVER/job/$JOB_NAME/lastBuild/console${RS}\n\n\n"
 
 echo "Started at: $(date)"
 if [[ "$1" == "-v" ]]; then
@@ -97,7 +97,7 @@ while [[ ! "$out" =~ "Finished: " ]]; do
   if [ ! -n "$start" ]; then
     start=0
   fi
-  out=$(curl -D /tmp/header.file -s "$CI_SERVER/job/$JOB_NAME/1/logText/progressiveHtml?start=$start")
+  out=$(curl -D /tmp/header.file -s "$CI_SERVER/job/$JOB_NAME/lastBuild/logText/progressiveHtml?start=$start")
   start=$(cat /tmp/header.file|grep "X-Text-Size"|cut -f2 -d:|sed 's/ //')
   allOut="$allOut\n$out"
 
