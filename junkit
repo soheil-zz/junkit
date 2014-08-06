@@ -109,8 +109,13 @@ echo "$JOB_NAME" >> ~/.junkit_jobs
 # uniq file inplace
 { rm ~/.junkit_jobs && uniq > ~/.junkit_jobs; } < ~/.junkit_jobs
 if [ "$(cat ~/.junkit_jobs | wc -l)" -gt "$JOBS_TO_KEEP" ]; then
+  # get the first line from the file
   JOB_NAME_TO_DELETE="$(head -1 ~/.junkit_jobs)"
-  curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME_TO_DELETE/doDelete"
+  # remove the first line in the file
+  { rm ~/.junkit_jobs && tail -n +2 > ~/.junkit_jobs; } < ~/.junkit_jobs
+  if [[ "$JOB_NAME" != "$JOB_NAME_TO_DELETE" ]]; then
+    curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME_TO_DELETE/doDelete"
+  fi
 fi
 
 printedNewLineOnce=0
