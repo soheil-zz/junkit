@@ -3,6 +3,7 @@
 # --------------------- CONFIG SECTION ---------------------
 # this can be hardcoded
 GIT_REMOTE_ORIGIN=$(git config --get remote.origin.url)
+JOBS_TO_KEEP=5
 #CI_SERVER=https://ci.example.com:8080
 # --------------------- CONFIG SECTION [END]----------------
 
@@ -101,6 +102,15 @@ if [[ "$1" == "-v" ]]; then
   printf "Fetching logs"
 else
   echo "Waiting for build to finish... (or CTRL+C to exit and leave the build running)"
+fi
+
+# do some clean up, while we're waiting
+echo "$JOB_NAME" >> ~/.junkit_jobs
+# uniq file inplace
+{ rm ~/.junkit_jobs && uniq > ~/.junkit_jobs; } < ~/.junkit_jobs
+if [ "$(cat ~/.junkit_jobs | wc -l)" -gt "$JOBS_TO_KEEP" ]; then
+  JOB_NAME_TO_DELETE="$(head -1 ~/.junkit_jobs)"
+  curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME_TO_DELETE/doDelete"
 fi
 
 printedNewLineOnce=0

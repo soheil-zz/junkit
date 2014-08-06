@@ -42,7 +42,7 @@ mkdir coverage
 bundle exec rake db:create --trace
 bundle exec rake db:schema:load --trace
 
-if [[ "SINGLE_SPEC" == "" ]]
-then bundle exec rake spec:run_once --trace
-else bundle exec rspec "SINGLE_SPEC"
+if [ -n "SINGLE_SPEC" ]
+then bundle exec rspec "SINGLE_SPEC"
+else bundle exec rake spec:run_once --trace
 fi
