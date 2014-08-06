@@ -63,15 +63,15 @@ fi
 SAFE_CI_SERVER="http://$CI_SERVER"
 CI_SERVER="http://$LOGIN@$CI_SERVER"
 
-JOB_NAME=$(echo "$WHOAMI"_job | awk '{print tolower($0)}')
-curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME/doDelete"
-echo "Creating Job for current branch..."
-
 if [[ "$2" != "" ]]; then
   GIT_BRANCH="$2"
 else
   GIT_BRANCH=$(git branch|grep \*|sed -e "s/\* //")
 fi
+
+JOB_NAME=$(echo "$WHOAMI"_"$GIT_BRANCH" | awk '{print tolower($0)}')
+curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME/doDelete"
+echo "Creating Job for current branch..."
 
 # replace \n with ;\n (this is the "tr") - escape string (this is the "sed")
 COMMAND_TO_EXECUTE=$(tr '\n' ';' < $(dirname "$0")/command_to_execute.sh | sed -e 's/[\/&]/\\&/g' | sed -e 's/;;/;/g')
