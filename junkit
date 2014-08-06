@@ -54,7 +54,16 @@ ${FMAG}♥${RS}
 EOF
 echo -e "$splash"
 echo "Starting up..."
-if [[ "$1" != "" && "$1" != "-v" ]]; then
+
+SINGLE_SPEC=""
+while getopts "s:" opt; do
+    case "$opt" in
+    s)  SINGLE_SPEC="$OPTARG"
+        ;;
+    esac
+done
+
+if [[ "$1" != "" && "$1" != "-v" && "$1" != "-s" ]]; then
   WHOAMI="$1"
 else
   WHOAMI=`whoami`
@@ -63,20 +72,24 @@ fi
 SAFE_CI_SERVER="http://$CI_SERVER"
 CI_SERVER="http://$LOGIN@$CI_SERVER"
 
-if [[ "$2" != "" ]]; then
+if [[ "$1" != "-s" && "$2" != "" ]]; then
   GIT_BRANCH="$2"
 else
   GIT_BRANCH=$(git branch|grep \*|sed -e "s/\* //")
 fi
 
-JOB_NAME=$(echo "$WHOAMI"_"$GIT_BRANCH" | awk '{print tolower($0)}')
+if [[ "$SINGLE_SPEC" == "" ]]; then
+  JOB_NAME=$(echo "$WHOAMI"_"$GIT_BRANCH" | awk '{print tolower($0)}')
+else
+  JOB_NAME=$(echo "$WHOAMI"_"single_spec" | awk '{print tolower($0)}')
+fi
 curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME/doDelete"
 echo "Creating Job for current branch..."
 
 # replace \n with ;\n (this is the "tr") - escape string (this is the "sed")
 COMMAND_TO_EXECUTE=$(tr '\n' ';' < $(dirname "$0")/command_to_execute.sh | sed -e 's/[\/&]/\\&/g' | sed -e 's/;;/;/g')
 GIT_REMOTE_ORIGIN=$(echo "$GIT_REMOTE_ORIGIN" | sed -e 's/[\/&]/\\&/g')
-cat $(dirname "$0")/config.xml | sed -e "s/COMMAND_TO_EXECUTE/$COMMAND_TO_EXECUTE/" | sed -e "s/GIT_BRANCH/$GIT_BRANCH/g" | sed -e "s/JOB_NAME/$JOB_NAME/g" | sed -e "s/GIT_REMOTE_ORIGIN/$GIT_REMOTE_ORIGIN/g" > /tmp/config-tmp.xml
+cat $(dirname "$0")/config.xml | sed -e "s/COMMAND_TO_EXECUTE/$COMMAND_TO_EXECUTE/" | sed -e "s/GIT_BRANCH/$GIT_BRANCH/g" | sed -e "s/JOB_NAME/$JOB_NAME/g" | sed -e "s/GIT_REMOTE_ORIGIN/$GIT_REMOTE_ORIGIN/g" | sed -e "s:SINGLE_SPEC:$SINGLE_SPEC:g" > /tmp/config-tmp.xml
 
 curl -X POST -d @/tmp/config-tmp.xml -H "Content-Type:text/xml" "$CI_SERVER/createItem?name=$JOB_NAME"
 echo "Starting a build..."
@@ -124,13 +137,17 @@ while [[ ! "$out" =~ "Finished: " ]]; do
   sleep .2
 done
 
-if [[ "$out" =~ "FAILURE" ]]; then
+if [[ "$out" =~ "Finished: FAILURE" ]]; then
   echo -e "\n\n-------------------------------------------------------"
   echo -e " FAILURE LOG"
   echo -e "-------------------------------------------------------\n\n"
 
   # get top half
-  if [[ "$allOut" =~ "failures," ]]; then
+  if [[ "$allOut" =~ " failure" ]]; then
+    osascript -e 'display notification "Build Failed! Sorry:(" with title "Build Status"'
+    echo -e "Getting logs..."
+    allOut=$(curl -s "$CI_SERVER/job/$JOB_NAME/lastBuild/consoleText")
+
     lineNumber=$(echo "$allOut"|grep -n "Failed examples:"|cut -f1 -d:)
     allOut=$(echo "$allOut"|head -n$(($lineNumber - 2)))
 
@@ -144,11 +161,10 @@ if [[ "$out" =~ "FAILURE" ]]; then
   fi
 
   echo -e "${FRED}\n\nFailed!${RS}\n\n"
-  osascript -e 'display notification "Build Failed! Sorry:(" with title "Build Status"'
   exit 1
 fi
 
-if [[ "$out" =~ "SUCCESS" ]]; then
+if [[ "$out" =~ "Finished: SUCCESS" ]]; then
   # build time
   echo "$out" | grep "Finished in"
 
