@@ -84,6 +84,11 @@ if [[ "$SINGLE_SPEC" == "" ]]; then
 else
   JOB_NAME=$(echo "$WHOAMI"_"single_spec" | awk '{print tolower($0)}')
 fi
+if [ "${#JOB_NAME}" -gt 50 ]; then
+  JOB_NAME=$(echo "$JOB_NAME" | md5)
+  JOB_NAME="$WHOAMI"_${JOB_NAME:0:5}
+  echo -e "${BYEL}Job name too long, changed to: $JOB_NAME${RS}"
+fi
 curl -s -o /dev/null -X POST "$CI_SERVER/job/$JOB_NAME/doDelete"
 echo "Creating Job for current branch..."
 

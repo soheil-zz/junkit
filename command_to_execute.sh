@@ -46,3 +46,5 @@ if [ -n "SINGLE_SPEC" ]
 then bundle exec rspec "SINGLE_SPEC"
 else bundle exec rake spec:run_once --trace
 fi
+
+bundle exec rake db:drop --trace
