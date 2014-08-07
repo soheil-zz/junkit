@@ -39,12 +39,24 @@ fi
 [ -d "coverage" ] && rm -rf coverage
 mkdir coverage
 
-bundle exec rake db:create --trace
-bundle exec rake db:schema:load --trace
+USE_PARALLEL="$(grep parallel_tests Gemfile)"
+
+if [ -n "$USE_PARALLEL" ]
+then bundle exec rake parallel:create --trace
+  bundle exec rake parallel:load_schema
+else bundle exec rake db:create --trace
+  bundle exec rake db:schema:load --trace
+fi
 
 if [ -n "SINGLE_SPEC" ]
 then bundle exec rspec "SINGLE_SPEC"
-else bundle exec rake spec:run_once --trace
+else if [ -n "$USE_PARALLEL" ]
+  then bundle exec rake parallel:spec --trace
+  else bundle exec rake spec:run_once --trace
+  fi
 fi
 
-bundle exec rake db:drop --trace
+if [ -n "$USE_PARALLEL" ]
+then bundle exec rake parallel:drop --trace
+else bundle exec rake db:drop --trace
+fi
