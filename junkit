@@ -154,7 +154,7 @@ while [[ ! "$out" =~ "Finished: " ]]; do
       echo "$out"
     fi
   fi
-  sleep .2
+  sleep 1
 done
 
 if [[ "$out" =~ "Finished: FAILURE" ]]; then

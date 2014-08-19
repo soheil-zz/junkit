@@ -32,7 +32,7 @@ else bundle --deployment
   echo 'gems updated'
   cd /tmp
   tarballCount=$(ls -lt | grep _gems.tar.gz | wc -l | sed 's/ //g')
-  test $tarballCount -gt 5 && ls -t | grep _gems.tar.gz | tail -n$(($tarballCount - 5)) | xargs rm
+  test $tarballCount -gt 10 && ls -t | grep _gems.tar.gz | tail -n$(($tarballCount - 10)) | xargs rm
   cd -
 fi
 
